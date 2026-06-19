@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sector Deco — Precio</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', system-ui, sans-serif; background: #f0f2f5; min-height: 100vh; }
+    .header { background: var(--color-primary, #1a237e); color: #fff; padding: 14px 20px; display: flex; align-items: center; gap: 14px; position: sticky; top: 0; z-index: 10; box-shadow: 0 2px 8px rgba(0,0,0,0.2); }
+    .header .logo-placeholder { height: 44px; width: 44px; border-radius: 8px; background: rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; font-size: 1.5rem; flex-shrink: 0; }
+    .header img.logo { height: 44px; width: 44px; object-fit: contain; border-radius: 8px; background: #fff; padding: 3px; flex-shrink: 0; }
+    .header .negocio-nombre { font-size: 1.1rem; font-weight: 800; }
+    .header .negocio-sub { font-size: 0.75rem; opacity: 0.7; margin-top: 2px; }
+    .main { max-width: 480px; margin: 0 auto; padding: 0 0 32px; }
+    .producto-imagen { width: 100%; height: 280px; background: #e8eaf6; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+    .producto-imagen img { width: 100%; height: 100%; object-fit: cover; }
+    .producto-imagen .sin-imagen { font-size: 5rem; opacity: 0.25; }
+    .producto-info { background: #fff; padding: 20px; border-bottom: 1px solid #eee; }
+    .producto-categoria { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--color-primary, #1a237e); background: #e8eaf6; display: inline-block; padding: 3px 10px; border-radius: 20px; margin-bottom: 10px; }
+    .producto-nombre { font-size: 1.15rem; font-weight: 700; color: #1a1a2e; line-height: 1.4; margin-bottom: 6px; }
+    .producto-codigo { font-size: 0.78rem; color: #aaa; font-family: monospace; }
+    .precio-bloque { background: var(--color-primary, #1a237e); padding: 22px 20px; color: #fff; }
+    .precio-etiqueta { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1px; opacity: 0.75; margin-bottom: 4px; }
+    .precio-valor { font-size: 3rem; font-weight: 900; letter-spacing: -2px; line-height: 1; }
+    .precio-nota { font-size: 0.72rem; opacity: 0.6; margin-top: 6px; }
+    .banners-section { background: #fff; overflow: hidden; margin-top: 12px; }
+    .banner-item { width: 100%; display: block; border-bottom: 1px solid #f0f0f0; }
+    .banner-item img { width: 100%; display: block; }
+    .redes-section { background: #fff; padding: 18px 20px; margin-top: 12px; }
+    .redes-titulo { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #aaa; margin-bottom: 12px; }
+    .redes-grid { display: flex; flex-wrap: wrap; gap: 10px; }
+    .red-btn { display: flex; align-items: center; gap: 8px; padding: 9px 14px; border-radius: 10px; text-decoration: none; font-size: 0.82rem; font-weight: 600; flex: 1; min-width: 140px; color: #fff; }
+    .red-instagram { background: linear-gradient(135deg, #833ab4, #fd1d1d, #fcb045); }
+    .red-facebook  { background: #1877f2; }
+    .red-whatsapp  { background: #25d366; }
+    .red-tiktok    { background: #010101; }
+    .red-web       { background: #4f46e5; }
+    .red-youtube   { background: #ff0000; }
+    .red-otro      { background: #6b7280; }
+    .footer-landing { text-align: center; padding: 20px; font-size: 0.7rem; color: #ccc; margin-top: 12px; }
+    .estado { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 80vh; padding: 40px 24px; text-align: center; }
+    .spinner { width: 44px; height: 44px; border: 3px solid #e8eaf6; border-top-color: #1a237e; border-radius: 50%; animation: spin 0.8s linear infinite; margin-bottom: 16px; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .estado h2 { font-size: 1.1rem; color: #333; margin-bottom: 8px; }
+    .estado p  { font-size: 0.85rem; color: #888; }
+  </style>
+</head>
+<body>
+<div id="app">
+  <div class="estado">
+    <div class="spinner"></div>
+    <h2>Cargando precio...</h2>
+  </div>
+</div>
+<script>
+  // ── CONFIGURACIÓN ──
+  var APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby8GH27mxCN6C5Fi9uLjzWlwEgsd_NYZSwWIv6aLvV0ytBiphcHKwXI8aqan74aUWA0/exec';
+
+  function getParam(n) { return new URLSearchParams(window.location.search).get(n); }
+
+  function fmt(v) {
+    if (!v && v !== 0) return '—';
+    return '$ ' + Number(v).toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+
+  function esc(s) {
+    return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  function iconRed(t) { return {instagram:'📷',facebook:'📘',whatsapp:'💬',tiktok:'🎵',web:'🌐',youtube:'▶️'}[t]||'🔗'; }
+  function claseRed(t) { return 'red-'+((['instagram','facebook','whatsapp','tiktok','web','youtube'].indexOf(t)>=0)?t:'otro'); }
+  function labelRed(t,v) { return {instagram:'Instagram',facebook:'Facebook',whatsapp:'WhatsApp',tiktok:'TikTok',youtube:'YouTube',web:'Sitio web'}[t]||v; }
+
+  function render(data) {
+    var p=data.producto, n=data.negocio, cfg=data.configQR||{}, banners=data.banners||[], redes=data.redes||[];
+    var primary = cfg.colorPrimario || '#1a237e';
+    document.documentElement.style.setProperty('--color-primary', primary);
+    document.title = n.nombre + ' — ' + p.descripcion;
+    var html = '';
+
+    // Header
+    html += '<div class="header">';
+    if (n.logo) { html += '<img class="logo" src="'+esc(n.logo)+'" alt="Logo" onerror="this.style.display=\'none\'">'; }
+    else { html += '<div class="logo-placeholder">🏠</div>'; }
+    html += '<div><div class="negocio-nombre">'+esc(n.nombre)+'</div><div class="negocio-sub">Lista de precios</div></div></div>';
+
+    html += '<div class="main">';
+
+    // Imagen
+    html += '<div class="producto-imagen">';
+    if (cfg.mostrarImagen !== false && p.urlImagen) {
+      html += '<img src="'+esc(p.urlImagen)+'" alt="'+esc(p.descripcion)+'" onerror="this.parentNode.innerHTML=\'<span class=\\\"sin-imagen\\\">🏷️</span>\'">';
+    } else { html += '<span class="sin-imagen">🏷️</span>'; }
+    html += '</div>';
+
+    // Info
+    html += '<div class="producto-info">';
+    if (p.categoria) html += '<span class="producto-categoria">'+esc(p.categoria)+'</span>';
+    if (cfg.mostrarDescripcion !== false) html += '<div class="producto-nombre">'+esc(p.descripcion)+'</div>';
+    if (cfg.mostrarCodigo !== false) html += '<div class="producto-codigo">Cód. '+esc(String(p.codigo))+'</div>';
+    html += '</div>';
+
+    // Precio
+    if (cfg.mostrarPrecio !== false) {
+      html += '<div class="precio-bloque"><div class="precio-etiqueta">Precio de lista</div>';
+      html += '<div class="precio-valor">'+fmt(p.precio)+'</div>';
+      html += '<div class="precio-nota">Precio válido al momento de la consulta</div></div>';
+    }
+
+    // Banners
+    if (banners.length > 0) {
+      html += '<div class="banners-section">';
+      banners.forEach(function(b) {
+        if (!b.url) return;
+        if (b.link) { html += '<a class="banner-item" href="'+esc(b.link)+'" target="_blank"><img src="'+esc(b.url)+'" alt="Banner"></a>'; }
+        else { html += '<div class="banner-item"><img src="'+esc(b.url)+'" alt="Banner"></div>'; }
+      });
+      html += '</div>';
+    }
+
+    // Redes
+    var redesActivas = redes.filter(function(r) { return r.activo && r.valor; });
+    if (redesActivas.length > 0) {
+      html += '<div class="redes-section"><div class="redes-titulo">Seguinos en redes</div><div class="redes-grid">';
+      redesActivas.forEach(function(r) {
+        var href = r.tipo === 'whatsapp' ? 'https://wa.me/'+r.valor.replace(/\D/g,'') : r.valor;
+        html += '<a class="red-btn '+claseRed(r.tipo)+'" href="'+esc(href)+'" target="_blank"><span>'+iconRed(r.tipo)+'</span><span>'+labelRed(r.tipo,r.valor)+'</span></a>';
+      });
+      html += '</div></div>';
+    }
+
+    html += '<div class="footer-landing">Precio actualizado en tiempo real · '+esc(n.nombre)+'</div>';
+    html += '</div>';
+    document.getElementById('app').innerHTML = html;
+  }
+
+  function renderError(msg) {
+    document.getElementById('app').innerHTML =
+      '<div class="estado"><div style="font-size:3rem;margin-bottom:16px">❌</div><h2>Producto no encontrado</h2><p>'+esc(msg||'El código no corresponde a un producto activo.')+'</p></div>';
+  }
+
+  // Obtener código del QR
+  var codigo = getParam('p');
+  if (!codigo) {
+    renderError('No se proporcionó un código de producto.');
+  } else {
+    // Llamar al Apps Script como API pública (JSONP-style via fetch)
+    var url = APPS_SCRIPT_URL + '?accion=obtenerProductoPublico&codigo=' + encodeURIComponent(codigo);
+    fetch(url)
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        if (data && data.ok) { render(data); }
+        else { renderError(data ? data.error : 'Error al cargar'); }
+      })
+      .catch(function() {
+        renderError('No se pudo conectar con el sistema.');
+      });
+  }
+</script>
+</body>
+</html>
