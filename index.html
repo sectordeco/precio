@@ -19,18 +19,14 @@
       top: 0;
       z-index: 10;
       box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-      min-height: 72px;
+      min-height: 88px;
     }
     .header img.logo {
-      height: 52px;
+      height: 64px;
       width: auto;
-      max-width: 120px;
+      max-width: 160px;
       object-fit: contain;
       flex-shrink: 0;
-      filter: brightness(0) invert(1);
-    }
-    .header img.logo.logo-color {
-      filter: none;
     }
     .header .logo-placeholder {
       height: 52px;
@@ -134,7 +130,7 @@
     // Header con logo grande sin recuadro
     html += '<div class="header">';
     if (n.logo) {
-      html += '<img class="logo logo-color" src="'+esc(n.logo)+'" alt="'+esc(n.nombre)+'" onerror="this.style.display=\'none\'">';
+      html += '<img class="logo" src="'+esc(n.logo)+'" alt="'+esc(n.nombre)+'" onerror="this.style.display=\'none\'">';
     } else {
       html += '<div class="logo-placeholder">🏠</div>';
     }
